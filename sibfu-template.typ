@@ -33,6 +33,7 @@
     font: "PT Serif",
     size: 14pt,
     lang: "ru",
+    hyphenate: false,
   )
 
   // Межстрочный интервал 1.5 (7.1.1)
@@ -50,7 +51,7 @@
     set align(center)
     set par(first-line-indent: 0mm)
     v(1em)           // отступ перед заголовком
-    it.body
+    upper(it.body)
     v(0.5em)         // отступ после заголовка
   }
 
@@ -99,7 +100,21 @@
   // ГОСТ Р 7.0.100–2018 (раздел 2 стандарта)
   set bibliography(style: "gost-r-7-0-5-2008-numeric.csl")
 
-  // ── 7. ОСНОВНОЕ СОДЕРЖИМОЕ ДОКУМЕНТА ─────────────────────
+// Нумерованный список: 1) 2) 3)
+set enum(
+  numbering: "1.",        // формат номера
+  indent: 12.5mm,         // отступ = красная строка
+  body-indent: 5mm,       // отступ текста от номера
+)
+
+// Маркированный список (для полноты)
+set list(
+  indent: 12.5mm,
+  body-indent: 5mm,
+  marker: "–",            // тире по ГОСТ
+)
+
+// ── 7. ОСНОВНОЕ СОДЕРЖИМОЕ ДОКУМЕНТА ─────────────────────
   doc
 }
 
@@ -110,7 +125,7 @@
   institute: "",
   department: "",
   approve-title: "УТВЕРЖДАЮ",
-  approve-role: "Заведующей кафедрой",
+  approve-role: "Заведующий кафедрой",
   approve-name: "",
   approve-year: "2026",
   work-type: "БАКАЛАВРСКАЯ РАБОТА",
@@ -133,6 +148,13 @@
   set text(size: 14pt, font: font)   // ← добавить font: font
   set page(
     numbering: none,
+    paper: "a4",
+    margin: (
+      top:    20mm,  // верхнее поле: 20 мм  (7.1.2)
+      bottom: 20mm,  // нижнее поле: 20 мм   (7.1.2)
+      left:   30mm,  // левое поле: 30 мм    (7.1.2, для переплёта)
+      right:  10mm,  // правое поле: 10 мм   (7.1.2)
+    ),
     footer: align(center, text(size: 14pt)[#city #year]),
   )
 
@@ -221,4 +243,36 @@
       }
     )
   )
+}
+
+#let toc() = {
+  // Принудительно одинарный интервал для всего содержания
+  set par(leading: 0.65em)
+  set block(spacing: 0.65em)  // убирает лишние отступы между строками
+
+  align(center, text(weight: "bold")[СОДЕРЖАНИЕ])
+  v(1em)
+
+  show outline.entry.where(level: 1): it => {
+    set text(weight: "regular")
+    it
+  }
+
+  show outline.entry.where(level: 2): it => {
+    set text(weight: "regular")
+    pad(left: 4pt, it)
+  }
+
+  show outline.entry.where(level: 3): it => {
+    set text(weight: "regular")
+    pad(left: 8pt, it)
+  }
+
+  outline(
+    title: none,
+    indent: 0pt,
+    depth: 3,
+  )
+
+  pagebreak()
 }
