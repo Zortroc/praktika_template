@@ -3,6 +3,9 @@
 // Версия Typst: 0.14.2
 // ============================================================
 
+#let times = read("times.ttf", encoding: none)
+#let times-bold = read("timesbd.ttf", encoding: none)
+
 // Главная функция-шаблон. Принимает метаданные и тело документа.
 #let university-doc(
   title: "Название документа",
@@ -22,19 +25,21 @@
       left:   30mm,  // левое поле: 30 мм    (7.1.2, для переплёта)
       right:  10mm,  // правое поле: 10 мм   (7.1.2)
     ),
-    // Нумерация страниц — внизу по центру (7.1.3)
-    numbering: "1",
-    number-align: center + bottom,
+    // // Нумерация страниц — внизу по центру (7.1.3)
+    // numbering: "1",
+    // number-align: center + bottom,
   )
 
   // ── 2. ОСНОВНОЙ ТЕКСТ ─────────────────────────────────────
   // Раздел 7.1.1: шрифт Times New Roman 14 пт, межстрочный 1.5
+
   set text(
-    font: "PT Serif",
+    font: "Times New Roman",
     size: 14pt,
     lang: "ru",
     hyphenate: false,
   )
+  show text.where(weight: "bold"): set text(font: "Times New Roman Bold")
 
   // Межстрочный интервал 1.5 (7.1.1)
   set par(
@@ -90,8 +95,8 @@
   // Раздел 7.7: «Таблица Х — Название» над таблицей, слева
   show figure.where(kind: table): it => {
     set align(left)
-    set text(size: 14pt)
-    [Таблица #it.counter.display() — #it.caption.body]
+    set text(size: 12pt)
+    // [Таблица #it.counter.display() — #it.caption.body]
     v(0.3em)
     it.body
   }
@@ -118,18 +123,70 @@ set list(
   doc
 }
 
+#let sfu-table(number: "1", caption: "", body) = {
+  figure(
+    kind: table,
+    caption: [
+       #caption
+    ],
+    placement: auto,
+    body
+  )
+}
+
+#let sfu-figure(number: "1", caption: "", body) = {
+  figure(
+    kind: image,
+    caption: [
+      Рисунок #number — #caption
+    ],
+    placement: auto,
+    body
+  )
+}
+
+#let sfu-formula(number: "1", body) = {
+  figure(
+    kind: formula,
+    caption: [
+      (#number)
+    ],
+    placement: auto,
+    body
+  )
+}
+
+#let sfu-cite(ref, page: none) = {
+  if page != none {
+    [ [#ref, с. #page] ]
+  } else {
+    [ [#ref] ]
+  }
+}
+
+#let sfu-bibliography(entries) = {
+  for entry in entries {
+    entry
+    linebreak()
+  }
+}
+
+#let sfu-section(title) = {
+  heading(title)
+}
+
 #let title-page(
-    font: "PT Serif", 
+  font: "Times New Roman", 
+  font-bold: "Times New Roman Bold",
   ministry: "Министерство науки и высшего образования РФ",
   university: "«СИБИРСКИЙ ФЕДЕРАЛЬНЫЙ УНИВЕРСИТЕТ»",
   institute: "",
   department: "",
-  approve-title: "УТВЕРЖДАЮ",
-  approve-role: "Заведующий кафедрой",
+  approve-title: "",
+  approve-role: "",
   approve-name: "",
-  approve-year: "2026",
-  work-type: "БАКАЛАВРСКАЯ РАБОТА",
-  work-topic: "",
+  approve-year: "",
+  work-type: "",
   practice-place: "",
   direction-code: "",
   direction-name: "",
@@ -146,6 +203,7 @@ set list(
   year: "2026",
 ) = {
   set text(size: 14pt, font: font)   // ← добавить font: font
+  show text.where(weight: "bold"): set text(font: font-bold)
   set page(
     numbering: none,
     paper: "a4",
@@ -156,7 +214,7 @@ set list(
       right:  10mm,  // правое поле: 10 мм   (7.1.2)
     ),
     footer: align(center, text(size: 14pt)[#city #year]),
-  )
+)
 
   // ── 1. ШАПКА ───────────────────────────────────────────────
   align(center)[
@@ -170,28 +228,27 @@ set list(
 
   v(1em)
 
-     // ── 2. ГРИФ УТВЕРЖДЕНИЯ ────────────────────────────────────
-  // Левая пустая колонка растягивается, правая — фиксирована
-  grid(
-    columns: (1fr, 180pt),
-    [],
-    [
-      *#approve-title* \
-      #approve-role \
-      #v(4pt)
-      #box(width: 55pt, line(length: 55pt, stroke: 0.5pt)) #approve-name \
-      #v(4pt)
-      «\_\_\_\_» \_\_\_\_\_\_\_\_\_ #approve-year г.
-    ],
-  )
+  //    // ── 2. ГРИФ УТВЕРЖДЕНИЯ ────────────────────────────────────
+  // // Левая пустая колонка растягивается, правая — фиксирована
+  // grid(
+  //   columns: (1fr, 180pt),
+  //   [],
+  //   [
+  //     *#approve-title* \
+  //     #approve-role \
+  //     #v(4pt)
+  //     #box(width: 55pt, line(length: 55pt, stroke: 0.5pt)) #approve-name \
+  //     #v(4pt)
+  //     «\_\_\_\_» \_\_\_\_\_\_\_\_\_ #approve-year г.
+  //   ],
+  // )
   
-  v(2em)
+  v(10em)
 
   // ── 3. ЦЕНТРАЛЬНЫЙ БЛОК ────────────────────────────────────
   align(center)[
     *#upper(work-type)*
     #v(0.5em)
-    #work-topic
     #if practice-place != "" [
       #v(0.5em)
       #practice-place
@@ -217,24 +274,24 @@ set list(
   place(bottom,
     block(
       width: 100%,
-      inset: (bottom: 24pt),
+      inset: (bottom: 180pt),
       {
         // Собираем строки вручную только для заполненных полей
         let rows = ()
-        rows.push(([Руководитель], [#supervisor-role], [#h(8pt)#supervisor-name]))
-        rows.push(([Выпускник], [], [#h(8pt)#graduate-name]))
+        // rows.push(([Руководитель], [#supervisor-role], [#h(8pt)#supervisor-name]))
+        rows.push(([Обучающийся ГФ25-02Б, 152541959], [], [#h(-16pt)#graduate-name]))
         if consultant-name != "" {
           rows.push(([Консультанты], [#consultant-role], [#h(8pt)#consultant-name]))
         }
         if normcontrol-name != "" {
-          rows.push(([Нормоконтролёр], [], [#h(8pt)#normcontrol-name]))
+          // rows.push(([Нормоконтролёр], [], [#h(8pt)#normcontrol-name]))
         }
         if reviewer-name != "" {
           rows.push(([Рецензент], [], [#h(8pt)#reviewer-name]))
         }
 
         table(
-          columns: (1fr, 1fr, 1fr),
+          columns: (2fr, 1fr, 1fr),
           stroke: none,
           align: (left, right, left),
           inset: (x: 0pt, y: 8pt),
